@@ -1,0 +1,8 @@
+{
+  "name": "pcb-detection-root",
+  "private": true,
+  "scripts": {
+    "dev": "cd electron-app && npm run dev",
+    "install:ui": "cd electron-app && npm install"
+  }
+}

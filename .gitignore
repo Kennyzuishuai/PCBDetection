@@ -1,0 +1,10 @@
+/.venv310
+/node_modules
+/.idea
+/.trae
+/__pycache__
+/UIProgram/__pycache__
+/python-backend/__pycache__
+/runs
+/save_data
+/datasets
