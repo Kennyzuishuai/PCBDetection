@@ -2,165 +2,141 @@
 
 ## 1. 项目概述
 
-**PCB Defect Detection System** 是一个基于深度学习的桌面应用程序，旨在自动检测印刷电路板（PCB）上的常见缺陷。该项目结合了 **YOLOv8** 的强大目标检测能力和 **PyQt5** 的用户友好界面，为工业质检提供了一个高效、可视化的解决方案。
+**PCB Defect Detection System** 是一个基于深度学习的智能检测平台，旨在自动检测印刷电路板（PCB）上的常见缺陷。本项目提供两种用户界面，以满足不同场景的需求：
+
+1.  **Modern Electron App (推荐)**: 基于 **Electron + React + Flask** 构建的现代化桌面应用，拥有美观的 Material UI 界面、实时的硬件监控（Dashboard）以及更灵活的交互体验。
+2.  **Legacy PyQt5 App**: 基于 **PyQt5** 的传统桌面应用，轻量级，无需 Node.js 环境。
 
 ### 主要功能和特点
-- **多模式检测**：支持单张图片、批量图片文件夹、视频文件以及实时摄像头检测。
-- **六大缺陷识别**：能够精准识别以下 PCB 缺陷：
-  - 缺失孔 (Missing Hole)
-  - 老鼠咬痕 (Mouse Bite)
-  - 开路 (Open Circuit)
-  - 短路 (Short)
-  - 毛刺 (Spur)
-  - 铜渣 (Spurious Copper)
-- **可视化结果**：在图像上实时绘制检测框、类别名称和置信度，支持中文标签显示。
-- **结果统计**：自动统计各类缺陷的数量，并支持通过下拉菜单筛选特定类别的缺陷。
-- **结果保存**：支持将检测后的图片或视频保存到本地，方便后续查看和分析。
-- **现代化 UI**：基于 PyQt5 构建的现代化图形界面，操作简单直观。
+- **多模式检测**：
+    - **图片/视频检测**：支持上传本地文件进行推理。
+    - **实时摄像头检测**：调用摄像头进行实时流处理。
+    - **批量检测**：支持文件夹批量处理。
+- **六大缺陷识别**：精准识别 Missing Hole, Mouse Bite, Open Circuit, Short, Spur, Spurious Copper。
+- **现代化仪表盘 (Electron)**：实时显示 CPU/GPU/内存使用率，提供系统健康状态监控。
+- **可视化结果**：
+    - **实时标注**：在图像/视频上绘制检测框、类别和置信度。
+    - **详细数据**：展示推理时间、目标数量、ROI 坐标等详细信息。
+- **结果保存**：支持将检测结果保存到本地。
 
-### 技术栈和依赖项
-- **编程语言**: Python 3.10
-- **GUI 框架**: PyQt5
-- **计算机视觉**: OpenCV (cv2), Pillow
-- **深度学习模型**: YOLOv8 (Ultralytics)
-- **数据处理**: NumPy
+### 技术栈
+
+#### Modern Version (Electron)
+- **前端**: Electron, React 19, Material UI (MUI), Vite
+- **后端**: Python (Flask), OpenCV, YOLOv8 (Ultralytics)
+- **通信**: HTTP API (Flask) + IPC (Electron)
+- **硬件监控**: systeminformation
+
+#### Legacy Version (PyQt5)
+- **GUI**: PyQt5
+- **核心逻辑**: Python 3.10, OpenCV, YOLOv8
 
 ---
 
 ## 2. 安装指南
 
 ### 系统要求
-- 操作系统: Windows / Linux / macOS (推荐 Windows)
-- Python 版本: Python 3.10 或更高版本
-- 显卡 (可选): 支持 CUDA 的 NVIDIA 显卡（用于加速模型推理，若无显卡则使用 CPU）
+- 操作系统: Windows (推荐) / Linux / macOS
+- Python: 3.10+
+- Node.js: 16+ (仅 Electron 版本需要)
+- 显卡: 推荐 NVIDIA GPU (CUDA) 加速推理
 
-### 依赖安装步骤
+### 1. Python 环境配置 (通用)
 
-1.  **克隆或下载项目**
-    ```bash
-    git clone <repository_url>
-    cd PCBDetection
-    ```
+无论使用哪个版本，都需要配置 Python 环境：
 
-2.  **创建虚拟环境 (推荐)**
-    ```bash
-    # 创建虚拟环境
-    python -m venv .venv
+```bash
+# 1. 克隆项目
+git clone <repository_url>
+cd PCBDetection
 
-    # 激活虚拟环境 (Windows)
-    .venv\Scripts\activate
+# 2. 创建并激活虚拟环境 (推荐)
+python -m venv .venv
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+source .venv/bin/activate
 
-    # 激活虚拟环境 (Linux/macOS)
-    source .venv/bin/activate
-    ```
+# 3. 安装 Python 依赖
+pip install -r python-backend/requirements.txt
+# 或者安装根目录的依赖 (包含 PyQt5)
+pip install -r requirements.txt
+```
 
-3.  **安装依赖包**
-    您可以使用以下命令安装所需的 Python 包：
-    ```bash
-    pip install ultralytics PyQt5 opencv-python Pillow numpy
-    ```
-    *或者运行项目自带的安装脚本（如果有）：*
-    ```bash
-    python installPackages.py
-    ```
+### 2. Electron 前端配置 (仅 Modern 版本)
 
-### 环境配置说明
-- 确保 `Font/` 目录下包含 `platech.ttf` 字体文件，用于在图片上绘制中文标签。
-- 确保 `models/` 目录下包含训练好的 YOLOv8 模型文件 (如 `best.pt`)。
-- 默认配置文件为 `Config.py`，您可以在此修改模型路径和保存路径。
+```bash
+cd electron-app
+
+# 安装 Node.js 依赖
+npm install
+```
 
 ---
 
 ## 3. 使用说明
 
-### 基本使用方法
-1.  **启动程序**
-    运行主程序文件：
+### 方式一：运行 Modern Electron App (推荐)
+
+此模式下，Electron 负责界面，Flask 负责后台推理。
+
+1.  **启动开发环境** (自动同时启动前端和后端)：
     ```bash
+    cd electron-app
+    npm run dev
+    ```
+    *注意：该命令会并行启动 Vite 开发服务器 (Port 5173) 和 Flask 后端 (Port 5000)。*
+
+2.  **操作指南**：
+    - **Dashboard**: 查看系统硬件状态。
+    - **Testing**:
+        - 上传图片/视频或打开摄像头。
+        - 调整 "Inference Settings" (FPS, Confidence, Quality)。
+        - 查看 "Detailed Results" (推理时间, 坐标, 类别)。
+    - **Settings**: 配置模型路径等参数。
+
+### 方式二：运行 Legacy PyQt5 App
+
+传统的单机桌面应用模式。
+
+1.  **启动程序**：
+    ```bash
+    # 在项目根目录下
     python MainProgram.py
     ```
 
-2.  **操作界面**
-    - **打开图片**: 点击“打开图片”按钮，选择一张 PCB 图片进行检测。
-    - **批量检测**: 点击“批量检测”按钮，选择一个包含图片的文件夹进行批量处理。
-    - **打开视频**: 点击“打开视频”按钮，选择本地视频文件进行检测。
-    - **摄像头检测**: 点击“摄像头”按钮，启动连接的摄像头进行实时检测。
-    - **保存结果**: 检测完成后，点击“保存结果”按钮将带有标注的图片或视频保存到 `save_data/` 目录。
-
-### 配置选项说明
-在 `Config.py` 文件中，您可以调整以下参数：
-```python
-# 图片及视频检测结果保存路径
-save_path = 'save_data'
-
-# 使用的模型路径
-model_path = 'models/best.pt'
-
-# 类别名称映射
-names = {0: 'missing_hole', ...}
-CH_names = ['缺失孔', ...]
-```
-
-### 示例代码片段
-核心检测逻辑位于 `MainProgram.py` 中，调用 YOLO 模型进行推理：
-```python
-# 加载模型
-self.model = YOLO(Config.model_path, task='detect')
-
-# 执行检测
-results = self.model(img_path)[0]
-
-# 获取检测结果
-location_list = results.boxes.xyxy.tolist() # 坐标
-cls_list = results.boxes.cls.tolist()       # 类别
-conf_list = results.boxes.conf.tolist()     # 置信度
-```
+2.  **操作指南**：
+    - 使用右侧按钮栏选择 "打开图片"、"打开视频" 或 "摄像头"。
+    - 结果将显示在主窗口，并列出检测到的缺陷表格。
 
 ---
 
-## 4. 开发指南
+## 4. 项目结构
 
-### 项目结构说明
 ```text
 PCBDetection/
-├── MainProgram.py      # 程序入口，主窗口逻辑
-├── Config.py           # 配置文件
-├── detect_tools.py     # 检测辅助工具（绘图、坐标转换）
-├── UIProgram/          # UI 界面相关文件
-│   ├── UiMain.py       # PyQt5 生成的界面代码
-│   ├── style.css       # 界面样式表
-│   └── ui_imgs/        # 图标资源
-├── models/             # 存放 YOLO 模型文件 (.pt)
-├── save_data/          # 默认结果保存目录
-├── datasets/           # 数据集目录
-└── Font/               # 字体文件
+├── electron-app/           # [NEW] Electron + React 前端
+│   ├── src/
+│   │   ├── components/     # React 组件 (Dashboard, Testing, etc.)
+│   │   └── App.jsx         # 主应用入口
+│   ├── electron/           # Electron 主进程 (main.cjs, preload.js)
+│   └── package.json        # Node.js 依赖配置
+├── python-backend/         # [NEW] Flask 后端服务
+│   ├── app.py              # Flask API 入口 (提供 /predict, /system_stats 接口)
+│   └── detect_tools.py     # 推理辅助工具
+├── UIProgram/              # [Legacy] PyQt5 界面资源
+├── models/                 # YOLO 模型文件 (.pt)
+├── MainProgram.py          # [Legacy] PyQt5 程序入口
+├── Config.py               # 通用配置文件
+└── requirements.txt        # Python 依赖列表
 ```
 
-### 构建和测试方法
-- **修改 UI**: 使用 Qt Designer 修改 `UIProgram/UiMain.ui`，然后使用 `pyuic5` 转换为 Python 代码。
-- **测试**: 运行 `CameraTest.py` 或 `VideoTest.py` 可以单独测试摄像头或视频功能。
+## 5. 许可证
 
-### 贡献指南
-欢迎提交 Issue 或 Pull Request 来改进本项目。请确保代码符合 PEP 8 规范，并添加必要的注释。
-
----
-
-## 5. 许可证信息
-
-### 版权声明
-Copyright (c) 2024 PCB Defect Detection Team. All Rights Reserved.
-
-### 使用许可条款
-本项目仅供学习和研究使用。未经授权，不得用于商业用途。
-(如需指定开源协议，如 MIT License，请在此处替换)
-
----
+Copyright (c) 2024 PCB Defect Detection Team.
+本项目仅供学习和研究使用。
 
 ## 6. 联系方式
 
-### 维护者信息
-- **姓名**: [kenny]
-- **邮箱**: [kenny030524@163.com]
-
-### 问题反馈渠道
-如果您在使用过程中遇到任何问题，请通过 GitHub Issues 或邮件联系我。
+- **维护者**: kenny
+- **邮箱**: kenny030524@163.com

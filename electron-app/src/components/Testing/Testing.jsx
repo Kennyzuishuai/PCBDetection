@@ -1,10 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { Box, Typography, Button, Paper, Grid, Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
+import { Box, Typography, Button, Paper, Grid, Slider, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, MenuItem, Select, FormControl, InputLabel, ToggleButton, ToggleButtonGroup, Switch, FormControlLabel, TextField, Stack } from '@mui/material';
 import ImageIcon from '@mui/icons-material/Image';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import FolderIcon from '@mui/icons-material/Folder';
 import StopIcon from '@mui/icons-material/Stop';
+import SettingsSuggestIcon from '@mui/icons-material/SettingsSuggest';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import TagIcon from '@mui/icons-material/Tag';
+import CategoryIcon from '@mui/icons-material/Category';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
+import SaveIcon from '@mui/icons-material/Save';
+import ClearIcon from '@mui/icons-material/Clear';
 
 export default function Testing() {
   const [confidence, setConfidence] = useState(0.5);
@@ -12,6 +19,10 @@ export default function Testing() {
   const [imageSrc, setImageSrc] = useState(null);
   const [results, setResults] = useState([]);
   
+  const [fps, setFps] = useState(15);
+  const [quality, setQuality] = useState('MED');
+  const [nativeFps, setNativeFps] = useState(false);
+
   const fileInputRef = useRef(null);
 
   const handleImageSelect = async (event) => {
@@ -72,19 +83,29 @@ export default function Testing() {
   };
 
   return (
-    <Box>
+    <Box sx={{ height: 'calc(100vh - 64px - 48px)', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h4" gutterBottom>Inference & Testing</Typography>
-      <Grid container spacing={3}>
+      <Grid container spacing={3} sx={{ flexGrow: 1, height: '100%', minHeight: 0 }}>
         {/* Main Display Area */}
-        <Grid item xs={12} md={8}>
-          <Paper sx={{ width: '100%', height: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'black', overflow: 'hidden' }}>
+        <Grid item xs={12} md={8} sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Paper sx={{ 
+            flexGrow: 1, 
+            width: '100%', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            bgcolor: 'black', 
+            overflow: 'hidden', 
+            minHeight: 0,
+            mb: 2 
+          }}>
             {imageSrc ? (
-              <img src={imageSrc} alt="Result" style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} />
+              <img src={imageSrc} alt="Result" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             ) : (
               <Typography color="grey.500">No Image/Video Selected</Typography>
             )}
           </Paper>
-          <TableContainer component={Paper} sx={{ mt: 2, maxHeight: 200 }}>
+          <TableContainer component={Paper} sx={{ height: 200, flexShrink: 0 }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
@@ -158,17 +179,131 @@ export default function Testing() {
           </Paper>
 
           <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>Inference Settings</Typography>
-            <Typography gutterBottom>Camera Confidence Threshold: {confidence}</Typography>
-            <Slider
-              value={confidence}
-              onChangeCommitted={handleConfidenceChange} 
-              min={0.1}
-              max={1.0}
-              step={0.05}
-              valueLabelDisplay="auto"
-            />
-            {/* Note: onChangeCommitted is better to avoid spamming the backend on drag */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <SettingsSuggestIcon sx={{ mr: 1 }} />
+                <Typography variant="h6">Inference Settings</Typography>
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" color="text.secondary">Video Frame Rate (FPS): {fps}</Typography>
+                    <FormControlLabel 
+                        control={<Switch size="small" checked={nativeFps} onChange={(e) => setNativeFps(e.target.checked)} />} 
+                        label={<Typography variant="caption">Native FPS</Typography>} 
+                    />
+                </Box>
+                <Slider
+                    disabled={nativeFps}
+                    value={fps}
+                    onChange={(e, val) => setFps(val)}
+                    min={1}
+                    max={30}
+                    step={1}
+                    valueLabelDisplay="auto"
+                    marks={[{value: 1, label: '1'}, {value: 15, label: '15'}, {value: 30, label: '30'}]}
+                />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>Detection Quality (Resolution & Precision)</Typography>
+                <ToggleButtonGroup
+                    color="primary"
+                    value={quality}
+                    exclusive
+                    onChange={(e, val) => val && setQuality(val)}
+                    fullWidth
+                    size="small"
+                >
+                    <ToggleButton value="LOW">LOW</ToggleButton>
+                    <ToggleButton value="MED">MED</ToggleButton>
+                    <ToggleButton value="HIGH">HIGH</ToggleButton>
+                    <ToggleButton value="MAX" sx={{ color: 'error.main' }}>MAX</ToggleButton>
+                </ToggleButtonGroup>
+            </Box>
+
+            <Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>Camera Confidence Threshold: {confidence}</Typography>
+                <Slider
+                    value={confidence}
+                    onChange={(e, val) => setConfidence(val)}
+                    onChangeCommitted={handleConfidenceChange} 
+                    min={0.1}
+                    max={1.0}
+                    step={0.05}
+                    valueLabelDisplay="auto"
+                    marks={[{value: 0.1, label: '0.1'}, {value: 0.5, label: '0.5'}, {value: 1.0, label: '1.0'}]}
+                />
+            </Box>
+          </Paper>
+
+          <Paper sx={{ p: 3, mt: 3 }}>
+            <Typography variant="h6" gutterBottom>Detailed Results</Typography>
+            
+            {/* Inference Time */}
+            <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <AccessTimeIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                    <Typography variant="body2" color="text.secondary">Inference Time</Typography>
+                </Box>
+                <Typography variant="h6" color="error.main" sx={{ pl: 3.5 }}>--</Typography>
+            </Box>
+
+            {/* Object Count */}
+            <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <TagIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                    <Typography variant="body2" color="text.secondary">Object Count</Typography>
+                </Box>
+                <Typography variant="h6" color="text.primary" sx={{ pl: 3.5 }}>--</Typography>
+            </Box>
+
+            {/* Top Class & Conf */}
+            <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <CategoryIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                    <Typography variant="body2" color="text.secondary">Top Class & Conf</Typography>
+                </Box>
+                <Typography variant="h6" color="info.main" sx={{ pl: 3.5 }}>--</Typography>
+            </Box>
+
+            {/* Coordinates (ROI) */}
+            <Box sx={{ mb: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <GpsFixedIcon sx={{ color: 'text.secondary', mr: 1, fontSize: 20 }} />
+                    <Typography variant="body2" color="text.secondary">Coordinates (ROI)</Typography>
+                </Box>
+                <TextField 
+                    fullWidth 
+                    variant="filled" 
+                    size="small" 
+                    value="Waiting for input..." 
+                    InputProps={{ 
+                        readOnly: true, 
+                        style: { fontFamily: 'monospace', fontSize: '0.9rem' } 
+                    }} 
+                />
+            </Box>
+
+            {/* Buttons */}
+            <Stack direction="row" spacing={2}>
+                <Button 
+                    variant="contained" 
+                    color="inherit" 
+                    startIcon={<SaveIcon />} 
+                    fullWidth
+                    sx={{ bgcolor: 'action.selected', color: 'text.primary', '&:hover': { bgcolor: 'action.focus' } }}
+                >
+                    Save
+                </Button>
+                <Button 
+                    variant="outlined" 
+                    color="error" 
+                    startIcon={<ClearIcon />} 
+                    fullWidth
+                >
+                    Clear
+                </Button>
+            </Stack>
           </Paper>
         </Grid>
       </Grid>

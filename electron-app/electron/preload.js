@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('electron', {
     }
   },
   invoke: (channel, data) => {
-      let validChannels = ['run-python'];
+      let validChannels = ['run-python', 'get-system-specs'];
       if (validChannels.includes(channel)) {
           return ipcRenderer.invoke(channel, data);
       }

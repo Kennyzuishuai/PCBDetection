@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { spawn } = require('child_process');
+const si = require('systeminformation');
 
 let pythonProcess = null;
 
@@ -84,4 +85,25 @@ app.on('will-quit', () => {
 ipcMain.handle('run-python', async (event, args) => {
     // This is now mostly handled by the Flask server, but kept for reference
     return { status: 'success', message: 'Backend is running on port 5000' };
+});
+
+ipcMain.handle('get-system-specs', async () => {
+    try {
+        const cpu = await si.cpu();
+        const mem = await si.mem();
+        const graphics = await si.graphics();
+        // Prefer discrete GPU if available
+        const gpu = graphics.controllers.find(g => !g.model.toLowerCase().includes('intel') && !g.model.toLowerCase().includes('uhd'))?.model 
+                    || graphics.controllers[0]?.model 
+                    || 'Integrated Graphics';
+        
+        return {
+            cpuCores: cpu.physicalCores,
+            memTotal: Math.ceil(mem.total / 1024 / 1024 / 1024),
+            gpuName: gpu
+        };
+    } catch (e) {
+        console.error("Failed to fetch system specs:", e);
+        return { cpuCores: '?', memTotal: '?', gpuName: 'Unknown' };
+    }
 });
