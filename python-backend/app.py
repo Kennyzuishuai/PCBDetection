@@ -159,15 +159,31 @@ def start_training():
     data = request.json
     epochs = data.get('epochs', 100)
     batch = data.get('batch', 16)
+    model_name = data.get('model', 'yolov8n.pt')
     
     # Construct command
     # Assuming we run from project root to find datasets
+    # Determine model path: if it's a standard name, let YOLO handle it (it downloads to current cwd usually)
+    # If it's a path, use it.
+    # For standard models, we might want to ensure they are downloaded to 'models' directory or similar, 
+    # but for simplicity, we pass the name/path directly.
+    
+    model_arg = model_name
+    # If it's one of the standard models and we have a local copy in models/, prefer that?
+    # logical check:
+    potential_local = os.path.join(PROJECT_ROOT, 'models', model_name)
+    if os.path.exists(potential_local):
+        model_arg = potential_local
+    elif model_name == 'yolov8n.pt': 
+        model_arg = DEFAULT_MODEL # Fallback to our absolute path default
+
     cmd = [
         sys.executable, "-m", "ultralytics", "train",
         f"data={os.path.join(PROJECT_ROOT, 'datasets/PCB_DATASET/data.yaml')}",
-        f"model={DEFAULT_MODEL}",
+        f"model={model_arg}",
         f"epochs={epochs}",
         f"batch={batch}",
+        "device=0",
         "project=runs/detect",
         "name=train_electron"
     ]
