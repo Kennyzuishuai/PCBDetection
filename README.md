@@ -19,6 +19,12 @@
     - **详细数据**：展示推理时间、目标数量、ROI 坐标等详细信息。
 - **结果保存**：支持将检测结果保存到本地。
 
+### 🚀 算法创新与优化 (Algorithm Innovations)
+在基础 YOLOv8s 的基础上，本项目针对微小缺陷检测（如细小开路、短路）进行了深度定制和改进：
+- **WIoU (Wise-IoU) 损失函数**: 替换了原生 CIoU。通过动态非单调聚焦机制（Dynamic Non-Monotonic Focusing Mechanism），智能分配高质量与低质量锚框的梯度权重，显著提升了回归精度和 `mAP@50-95` 指标。
+- **CBAM 注意力机制**: 在 Backbone 的特征提取层（P3, P4, P5）无缝融入了 CBAM (Convolutional Block Attention Module)，结合通道与空间注意力，有效抑制了 PCB 基板复杂纹理的背景噪声，增强了微小缺陷的特征响应。
+- **训练优化**: 采用 `Pickle-Safe` 的 Hook 机制动态注入改进模块，确保了模型权重的安全序列化；并针对 Windows 多进程死锁问题进行了 DataLoader 的工程化修复。
+
 ### 技术栈
 
 #### Modern Version (Electron)
@@ -109,6 +115,19 @@ npm install
     - 使用右侧按钮栏选择 "打开图片"、"打开视频" 或 "摄像头"。
     - 结果将显示在主窗口，并列出检测到的缺陷表格。
 
+### 方式三：运行改进版模型训练 (Training)
+
+如果您需要重新训练或微调加入了 WIoU 和 CBAM 的改进版模型：
+
+1.  **启动训练脚本**：
+    ```bash
+    # 采用单线程数据加载以避免 Windows 死锁
+    python train_improved.py
+    ```
+
+2.  **查看结果**：
+    训练完成后，最新的权重文件（`best.pt`）将保存在 `PCB_Improved/v8s_CBAM_WIoU/weights/` 目录下，可直接替换原有模型进行推理。
+
 ---
 
 ## 4. 项目结构
@@ -126,6 +145,9 @@ PCBDetection/
 │   └── detect_tools.py     # 推理辅助工具
 ├── UIProgram/              # [Legacy] PyQt5 界面资源
 ├── models/                 # YOLO 模型文件 (.pt)
+├── extensions.py           # [NEW] YOLOv8 自定义扩展模块 (WIoU, CBAM)
+├── yolov8s-cbam.yaml       # [NEW] 改进版网络结构配置
+├── train_improved.py       # [NEW] 改进版模型训练启动脚本
 ├── MainProgram.py          # [Legacy] PyQt5 程序入口
 ├── Config.py               # 通用配置文件
 └── requirements.txt        # Python 依赖列表
